@@ -24,6 +24,7 @@ module.exports = function(grunt) {
     options = this.options({
       out: '',
       separator: '-',
+      digestPathStyle: 'basename',
       algorithm: 'md5',
       basePath: false
     });
@@ -44,11 +45,15 @@ module.exports = function(grunt) {
 
       data = grunt.file.read(filepath);
       digest = crypto.createHash(options.algorithm).update(data).digest('hex');
-      fileDigest = [base, options.separator, digest, ext].join('');
-      filepathDigest = filepath.replace([base, ext].join(''), fileDigest);
-
-      //Copy file
-      grunt.file.copy(filepath, filepathDigest);
+      if (options.digestPathStyle === 'parameter') {
+        fileDigest = [base, ext, '?', digest].join(''); 
+        filepathDigest = filepath.replace([base, ext].join(''), fileDigest);
+      } else {
+        fileDigest = [base, options.separator, digest, ext].join('');
+        //Copy file
+        grunt.file.copy(filepath, filepathDigest);
+        filepathDigest = filepath.replace([base, ext].join(''), fileDigest);
+      }
 
       //Add file to map
       filemap[fileWithPath] = fileDigest;
